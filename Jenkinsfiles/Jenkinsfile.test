@@ -1,0 +1,24 @@
+pipeline {
+  agent { label "techops_jenkins_node" }
+  environment {
+    ARTIFACTORY_PASSWORD = credentials("ARTIFACTORY_PASSWORD")
+    PIP_INDEX_URL = "https://jenkins:${ARTIFACTORY_PASSWORD}@artifactory.glovoint.com/artifactory/api/pypi/glovo-pypi/simple"
+  }
+  stages {
+    stage("Get dependencies") {
+      steps {
+        sh(
+        """
+        python3 -m venv run-env
+        source run-env/bin/activate
+        pip3 install -r requirements.txt
+        """)
+      }
+    }
+    stage("Update logs") {
+      steps {
+        sh("source run-env/bin/activate && python secrets_to_env.py 'python -m test'")
+      }
+    }
+  }
+}
